@@ -1,4 +1,6 @@
-![cano.py](https://github.com/KScott6/cano.py/extras/canopy_logo.png)
+<p align="center">
+  <img src="extras/canopy_logo.png" alt="cano.py logo" width="400">
+</p>
 
 <br>
 
