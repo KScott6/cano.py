@@ -1,3 +1,7 @@
+![cano.py](https://github.com/KScott6/cano.py/extras/canopy_logo.png)
+
+<br>
+
 # cano.py walkthrough
 
 Inspired by [BUSCO_phylogenomics](https://github.com/jamiemcg/BUSCO_phylogenomics), by Jamie McGowan. Cano.py also creates a species tree from BUSCO output, but instead uses a [partitioned analysis](https://iqtree.github.io/doc/Advanced-Tutorial), where IQ-TREE is used to identify the best substition model for every BUSCO gene used. 
