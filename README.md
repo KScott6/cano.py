@@ -72,7 +72,7 @@ So if you have 100 genomes and set the sco-threshold to 0.9 (90%), only 90 genom
 
 `busco_genes_presence_absence_matrix_FULL.tsv` : a matrix indicating the presence/absence of BUSCO genes (single copy and complete) for each genome, for every single BUSCO gene in a given database (e.g. if you provide the fungi odb10 BUSCO output, this will always include 758 fugnal BUSCO genes)
 
-`busco_genes_presence_absence_matrix.tsv` : a matrix indicating the presence/absence of BUSCO genes (single copy and complete) for each genome. 
+`busco_genes_presence_absence_matrix.tsv` : a matrix indicating the presence/absence of BUSCO genes (single copy and complete) for each genome, but only for the BUSCOs that were identified as passing your SCO threshold. 
 
 `single_copy_sequences` : folder containing aa fastas of BUSCO genes, one fasta for each determined SCO/pseudo-SCO
 
