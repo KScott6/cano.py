@@ -77,10 +77,12 @@ python /project/arsef/scripts/cano.py \
 
 Other options:
 
-`sco-threshold` : the minimum proportion of genomes with a particular gene to retain it as single-copy (default: 1.0). 
-      Sometimes, if you have poor quality genomes, a very diverse set of genomes, or a very large set of genomes, you will be unable to find any true SCOs in your dataset. Lower the sco-threshold until you have enough genes that make the cut. So if you have 100 genomes and set the sco-threshold to 0.9 (90%), only 90 genomes will need to have a particular gene complete and single-copy for the gene to be treated as an SCO.
+`sco-threshold` : the minimum proportion of genomes with a particular gene to retain it as single-copy (default: 1.0). **Will only work with BUSCO input.**
+
+Sometimes, if you have poor quality genomes, a very diverse set of genomes, or a very large set of genomes, you will be unable to find any true SCOs in your dataset. Lower the sco-threshold until you have enough genes that make the cut. So if you have 100 genomes and set the sco-threshold to 0.9 (90%), only 90 genomes will need to have a particular gene complete and single-copy for the gene to be treated as an SCO.
 
 `seq_min_length` : the minimum length threshold (aa) that an aligned and trimmed SCO must surpass in order to move forward in the pipeline.
+
 
 <br>
 
