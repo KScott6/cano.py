@@ -173,7 +173,7 @@ def evaluate_alignment_lengths(trimmed_dir: Path,
     # 0 or negative => no filtering (but still log)
     threshold = seq_min_length if seq_min_length and seq_min_length > 0 else None
 
-    # For your pipeline, trimmed files are *.trimmed.aln
+    # trimmed files are *.trimmed.aln
     aln_files = sorted(trimmed_dir.glob("*.trimmed.aln"))
 
     kept_buscos = set()
@@ -182,13 +182,14 @@ def evaluate_alignment_lengths(trimmed_dir: Path,
         out.write("busco_id\talignment_length\tstatus\n")
 
         for aln_path in aln_files:
-            # e.g. 494at4751.trimmed.aln -> busco_id = 494at4751
+            # fix names. example: 494at4751.trimmed.aln -> busco_id = 494at4751
             stem = aln_path.stem  # "494at4751.trimmed"
             busco_id = stem.replace(".trimmed", "")
 
             aln_len = 0
             try:
-                # Use the length of the first sequence in the alignment
+                # Use the length of the first sequence in the alignment 
+                # prob a better way to do this 
                 with aln_path.open() as handle:
                     for record in SeqIO.parse(handle, "fasta"):
                         aln_len = len(record.seq)
@@ -339,7 +340,7 @@ def main():
         skipped_unknown_omes = set()
 
         for fa_path in fasta_paths:
-            gene_id = fa_path.stem  # e.g. "N0.HOG0004310"
+            gene_id = fa_path.stem  # example: "N0.HOG0004310"
             for rec in SeqIO.parse(str(fa_path), "fasta"):
                 raw_id = rec.id
                 # Extract OME as part before first "_"
@@ -386,7 +387,7 @@ def main():
         )
 
     # ----------------------------------------------------------------------
-    # MODE 2: BUSCO mode (original behavior)
+    # MODE 2: BUSCO mode
     # ----------------------------------------------------------------------
     else:
         mode = "busco"
@@ -418,7 +419,7 @@ def main():
             for ome in genomes_with_no_buscos:
                 f.write(f"{ome}\n")
 
-        # Full presence/absence matrix
+        # full presence/absence matrix
         full_matrix = []
         for ome in prefixes:
             row = {"genome": ome}
@@ -431,7 +432,8 @@ def main():
             index=False
         )
 
-        # Retained single-copy BUSCOs (using math.ceil for threshold)
+        # Retained single-copy BUSCOs 
+        # using math.ceil for threshold, otherwise weird rounding errors happen
         min_required = math.ceil(len(prefixes) * args.sco_threshold)
         retained_buscos = sorted(
             [b for b in all_buscos if len(busco_presence[b]) >= min_required]
@@ -473,9 +475,9 @@ def main():
                     except Exception:
                         continue
 
-    # ----------------------------------------------------------------------
+    ###################
     # From here on: shared pipeline (BUSCO or OrthoFinder genes)
-    # ----------------------------------------------------------------------
+    ##################
 
     # Write combined per-gene FASTAs (safe to overwrite / re-write)
     for gene_id, records in busco_records.items():
@@ -509,7 +511,7 @@ def main():
         with Pool(processes=args.threads) as pool:
             pool.map(run_trimal, trimal_jobs)
 
-    # Length logging + filtering of trimmed alignments
+    # length logging + filtering of trimmed alignments
     kept_by_length = evaluate_alignment_lengths(
         trimmed_dir=trimmed_dir,
         logs_dir=log_dir,
@@ -522,7 +524,7 @@ def main():
     # Apply length filter
     aln_files = []
     for aln_file in all_trimmed:
-        stem = aln_file.stem  # e.g. "494at4751.trimmed" or "N0.HOG0007582.trimmed"
+        stem = aln_file.stem  # example: "494at4751.trimmed" or "N0.HOG0007582.trimmed"
         gene_id = stem.replace(".trimmed", "")
         if gene_id in kept_by_length:
             aln_files.append(aln_file)
@@ -552,7 +554,7 @@ def main():
             for future in as_completed(futures):
                 _ = future.result()
 
-    # Collect all .iqtree files (from previous and current runs)
+    # collect all .iqtree files (from previous and current runs)
     iqtree_files = sorted(single_tree_dir.glob("*.iqtree"))
 
     # Summarize per-gene models
@@ -569,17 +571,17 @@ def main():
     model_df.to_csv(single_tree_dir / "partition_model_summary.tsv", sep="\t", index=False)
 
     # ------------------------------------------------------------------
-    # Build concatenated alignment and partition info (KEEP FULL GENE ID)
+    # Build concatenated alignment and partition info 
+    # (notes: this keeps the full gene ID)
     # ------------------------------------------------------------------
     genome_seqs = defaultdict(list)
     partition_lines = []
     current_start = 1
 
-    # Keep full gene ID, including periods (e.g., "N0.HOG0007582")
+    # Keep full gene ID, including periods (example: "N0.HOG0007582")
     gene_order = [Path(f).stem.replace(".trimmed", "") for f in aln_files]
 
     for aln_file in aln_files:
-        # Again, keep the full HOG name
         gene_id = Path(aln_file).stem.replace(".trimmed", "")
         records = {rec.id: str(rec.seq) for rec in SeqIO.parse(aln_file, "fasta")}
         if not records:
@@ -587,7 +589,7 @@ def main():
 
         aln_length = len(next(iter(records.values())))
 
-        # Build concatenated sequences in the same genome order
+        #build concatenated sequences in the same genome order
         for genome in prefixes:
             genome_seqs[genome].append(records.get(genome, "-" * aln_length))
 
@@ -596,31 +598,31 @@ def main():
         )
         current_start += aln_length
 
-    # Write concatenated alignment
+    # write concatenated alignment
     with open(concat_dir / "concatenated_alignment.fasta", "w") as f:
         for genome, seqs in genome_seqs.items():
             f.write(f">{genome}\n{''.join(seqs)}\n")
 
-    # Write partition coordinates
+    # write partition coordinates
     with open(concat_dir / "partition_coordinates.txt", "w") as f:
         for line in partition_lines:
             f.write(f"{line}\n")
 
-    # Map gene_id -> model from IQ-TREE summaries
+    # map gene_id -> model from IQ-TREE summaries
     model_dict = dict(zip(model_df["busco_id"].astype(str), model_df["model"]))
 
-    # Write NEXUS partition file
+    # write nexus partition file
     with open(concat_dir / "partition.nexus", "w") as f:
         f.write("#nexus\nbegin sets;\n")
         for line in partition_lines:
-            # Extract gene_id and coordinates from the "PROT, gene_id = start-end" line
+            # extract gene_id and coordinates from the "PROT, gene_id = start-end" line
             gene_id = line.split(",")[1].split("=")[0].strip()
             coords = line.split("=")[1].strip()
             f.write(f"    charset {gene_id} = {coords};\n")
 
         f.write("    charpartition mine = ")
 
-        # Only include genes that actually have a model entry
+        # only include genes that actually have a model entry
         f.write(
             ", ".join(
                 f"{model_dict[gene_id]}:{gene_id}"
@@ -630,7 +632,7 @@ def main():
         )
         f.write(";\nend;\n")
 
-    # Final concatenated IQ-TREE run (checkpoint-aware)
+    # final concatenated IQ-TREE run (checkpoint-aware)
     final_treefile = final_tree_dir / "final_tree.treefile"
     if not (args.continue_run and final_treefile.exists()):
         final_cmd = [
@@ -643,7 +645,7 @@ def main():
         ]
         subprocess.run(final_cmd, check=True)
 
-    # Final report
+    # creation of Final report
     final_gene_count = len(gene_order)  # genes actually used in concatenated alignment
 
     with open(output_dir / "final_report.txt", "w") as f:
