@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="extras/canopy_logo.png" alt="cano.py logo" width="400">
+  <img src="extras/graphic_design_is_my_passion.png" alt="cano.py logo" width="400">
 </p>
 
 <br>
